@@ -1,0 +1,115 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Juan De Dios Pérez
+-- CRETAE date: 27/02/2017
+-- Description: Give user the opportunity to change the user's password 
+-- =============================================
+CREATE PROCEDURE    [ADM].[SPE_USER_RECOVER_PASSWORD]
+		  @XML_RESULT XML OUT     --Give as result a number 0 for a ERROR and 1 to correct process.
+    	, @PIN_KY_USER AS NVARCHAR(50) = NULL
+		, @PIN_KY_EMAIL AS NVARCHAR(500)
+		, @PIN_NM_PASSWORD AS NVARCHAR(100)
+		, @PIN_KY_TOKEN AS NVARCHAR(100)
+		, @PIN_USER AS NVARCHAR(50)
+		, @PIN_NM_PROGRAM AS NVARCHAR(50)
+AS 
+BEGIN  
+	--SE DECLARA E INICIALIZA LA VARIABLE QUE NOS INDICARA SI GENERAMOS LA TRANSACCION EN ESTE SP
+	DECLARE @DT_SYSTEM DATETIME = GETDATE()
+		, @XML_DATA XML
+		, @KY_USER AS NVARCHAR(50)
+
+    BEGIN TRY
+		BEGIN TRANSACTION
+			
+
+			IF (NULLIF(RTRIM(LTRIM(@PIN_KY_EMAIL)), '') IS NOT NULL OR NULLIF(RTRIM(LTRIM(@PIN_KY_USER)), '') IS NOT NULL) BEGIN
+					IF EXISTS (SELECT TOP 1 1 FROM ADM.C_USER WHERE KY_USER = @PIN_KY_USER OR KY_EMAIL = @PIN_KY_EMAIL)
+					BEGIN
+				UPDATE ADM.C_USER
+				SET KY_CHANGE_PASSWORD = @PIN_KY_TOKEN
+					, FG_CHANGE_PASSWORD = 1
+					, DT_CHANGE_PASSWORD = @DT_SYSTEM
+					, DT_UPDATE = @DT_SYSTEM
+					, NM_PROGRAM_UPDATE = @PIN_NM_PROGRAM
+					, KY_USER_APP_UPDATE = @PIN_USER
+				WHERE KY_USER = @PIN_KY_USER OR KY_EMAIL = @PIN_KY_EMAIL
+				END
+
+				IF (@@ROWCOUNT > 0) BEGIN
+
+					SET @XML_DATA = (
+						SELECT TOP 1 CU.KY_USER AS '@KY_USER'
+							, CU.NM_USER AS '@NM_USER'
+							, CU.KY_EMAIL AS '@KY_EMAIL'
+							, 'CHANGING' AS '@KY_RECOVERY_STATUS'
+						FROM ADM.C_USER CU
+						WHERE KY_USER = @PIN_KY_USER OR KY_EMAIL = @PIN_KY_EMAIL
+						FOR XML PATH('USER')
+					)
+
+					SET @XML_RESULT = [dbo].[F_ERROR_CREATE_HEADER] (@@ROWCOUNT, 1, 'SUCCESSFUL')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'Se ha enviado un código de recuperación de tu contraseña a tu correo electrónico.', 'ES')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'A recovery code that contains your password  has been sent to your email address.', 'EN')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_DATA] (@XML_RESULT, @XML_DATA)
+				END ELSE BEGIN
+					IF (NULLIF(RTRIM(LTRIM(@PIN_KY_EMAIL)), '') IS NOT NULL) BEGIN
+						SET @XML_RESULT = [dbo].[F_ERROR_CREATE_HEADER] (@@ROWCOUNT, 1, 'WARNING')
+						SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'El correo electrónico ' + @PIN_KY_EMAIL + '  no está asociado a ninguna cuenta.', 'ES')
+						SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'The email address ' + @PIN_KY_EMAIL + '  is not associated  with any account.', 'EN')
+					END ELSE BEGIN
+						SET @XML_RESULT = [dbo].[F_ERROR_CREATE_HEADER] (@@ROWCOUNT, 1, 'WARNING')
+						SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'La cuenta ' + @PIN_KY_USER + ' existe.', 'ES')
+						SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES] (@XML_RESULT, 'The account ' + @PIN_KY_USER + ' does not exists.', 'EN')
+					END
+				END
+			END ELSE BEGIN
+				
+				SET @KY_USER = (SELECT TOP 1 KY_USER FROM ADM.C_USER WHERE KY_CHANGE_PASSWORD = @PIN_KY_TOKEN)
+
+				UPDATE ADM.C_USER
+				SET KY_CHANGE_PASSWORD = NULL
+					, FG_CHANGE_PASSWORD = 0
+					, DT_CHANGE_PASSWORD = @DT_SYSTEM
+					, NM_PASSWORD = @PIN_NM_PASSWORD
+					, DT_UPDATE = @DT_SYSTEM
+					, NM_PROGRAM_UPDATE = @PIN_NM_PROGRAM
+					, KY_USER_APP_UPDATE = @PIN_USER
+				WHERE KY_CHANGE_PASSWORD = @PIN_KY_TOKEN
+					AND @DT_SYSTEM < DATEADD(HOUR, 1, DT_CHANGE_PASSWORD)
+
+				IF (@@ROWCOUNT > 0) BEGIN
+
+					SET @XML_DATA = (
+						SELECT TOP 1 CU.KY_USER AS '@KY_USER'
+							, CU.NM_USER AS '@NM_USER'
+							, CU.KY_EMAIL AS '@KY_EMAIL'
+							, 'CHANGED' AS '@KY_RECOVERY_STATUS'
+						FROM ADM.C_USER CU
+						WHERE KY_USER = @KY_USER
+						FOR XML PATH('USER')
+					)
+
+					SET @XML_RESULT = [dbo].[F_ERROR_CREATE_HEADER](@@ROWCOUNT, 1, 'SUCCESSFUL')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES](@XML_RESULT, 'La contraseña se cambió satisfactoriamente', 'ES')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES](@XML_RESULT, 'The password has been changed successfully.', 'EN')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_DATA] (@XML_RESULT, @XML_DATA)
+				END ELSE BEGIN
+					SET @XML_RESULT = [dbo].[F_ERROR_CREATE_HEADER](@@ROWCOUNT, 1, 'WARNING')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES](@XML_RESULT, 'El código ha caducado.', 'ES')
+					SET @XML_RESULT = [dbo].[F_ERROR_INSERT_MESSAGES](@XML_RESULT, 'El code has expired.', 'EN')
+				END
+			END
+
+		COMMIT	
+	END TRY
+	BEGIN CATCH
+		ROLLBACK
+		
+		-- EL XML DEVUELVE EL ERROR INDICADO POR SQL Y UN MSJ DE ERROR GENÉRICO
+		SET @XML_RESULT = DBO.F_ERROR_MESSAGES(ERROR_NUMBER(), ERROR_MESSAGE())
+			
+	END CATCH
+END
+

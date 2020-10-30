@@ -1,0 +1,53 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2018
+-- Author: Julio Tavares
+-- CREATE date: 25/05/2018
+-- Description: get Pending notifications per user
+-- =============================================
+
+CREATE PROCEDURE    [PRD].[SPE_GET_PENDING_NOTIFICATIONS]
+	  @PIN_ID_NOTIFICATIION AS INT = NULL
+	, @PIN_KY_USER AS NVARCHAR(50) = NULL
+	, @KY_PROCESS_TYPE AS NVARCHAR(50) = NULL
+	, @PIN_KY_STATUS AS NVARCHAR(50) = NULL
+
+AS   
+
+	SELECT 
+			NOTI.ID_NOTIFICATION,
+			NOTI.KY_USER,
+			NOTI.KY_PROCESS_TYPE,
+			NOTI.KY_STATUS,
+			NOTI.USER_RECIPENT,
+			NOTI.NM_NAME,
+			NOTI.NM_TITLE,
+			--ISNULL(NOTI.DS_MESSAGE, NOTI.NM_TITLE) DS_MESSAGE,
+			CASE WHEN NOTI.DS_MESSAGE IS NULL THEN NOTI.NM_TITLE
+				 WHEN NOTI.DS_MESSAGE = '' THEN NOTI.NM_TITLE
+				 ELSE NOTI.DS_MESSAGE
+			END AS DS_MESSAGE,
+			NOTI.XML_PROCESS_CONFIGURATION
+		FROM(
+			SELECT NP.ID_NOTIFICATION,
+					NP.KY_USER,
+					NP.KY_PROCESS_TYPE,
+					NP.KY_STATUS,
+					(SELECT TOP 1  msgs.msg.value('@TO', 'nvarchar(50)')  TO_USER FROM NP.XML_PROCESS_CONFIGURATION.nodes('NOTIFICATIONS/RECIPIENTS/child::node()') msgs(msg) WHERE msgs.msg.value('@TO' , 'nvarchar(max)') = @PIN_KY_USER) 
+					 AS USER_RECIPENT,
+					(SELECT top 1 msgs.msg.value('@NAME', 'nvarchar(max)')  NM_NAME FROM NP.XML_PROCESS_CONFIGURATION.nodes('NOTIFICATIONS/child::node()') msgs(msg)  WHERE msgs.msg.value('@NAME', 'nvarchar(max)') IS NOT NULL
+					) as NM_NAME,
+					(SELECT top 1 msgs.msg.value('@TITLE', 'nvarchar(max)') NM_TITLE FROM NP.XML_PROCESS_CONFIGURATION.nodes('NOTIFICATIONS/child::node()') msgs(msg) WHERE msgs.msg.value('@TITLE', 'nvarchar(max)') IS NOT NULL
+					) as NM_TITLE,
+					(SELECT top 1 msgs.msg.value('@MESSAGE', 'nvarchar(max)')  DS_MSG FROM NP.XML_PROCESS_CONFIGURATION.nodes('NOTIFICATIONS/child::node()') msgs(msg)  WHERE msgs.msg.value('@MESSAGE', 'nvarchar(max)') IS NOT NULL) 
+					as DS_MESSAGE,
+					NP.XML_PROCESS_CONFIGURATION
+				FROM PRD.K_NOTIFICATION_PROCESS NP
+			)
+			NOTI
+		WHERE NOTI.USER_RECIPENT = @PIN_KY_USER
+		   AND (@PIN_ID_NOTIFICATIION IS NULL OR (@PIN_ID_NOTIFICATIION IS NOT NULL AND NOTI.ID_NOTIFICATION = @PIN_ID_NOTIFICATIION))
+		   AND (@KY_PROCESS_TYPE IS NULL OR (@KY_PROCESS_TYPE IS NOT NULL AND NOTI.KY_PROCESS_TYPE = @KY_PROCESS_TYPE))
+		   AND (@PIN_KY_STATUS IS NULL OR (@PIN_KY_STATUS IS NOT NULL AND NOTI.KY_STATUS = @PIN_KY_STATUS))
+		ORDER BY 1 DESC
+

@@ -1,0 +1,38 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Juan De Dios Pérez 
+-- CREATE date: 23/03/2017
+-- Description: get all characteristics
+-- =============================================
+
+CREATE PROCEDURE    [PRD].[SPE_GET_ITEM_CHARACTERISTICS] 
+	    @PIN_ID_ITEM INT = NULL,
+	    @PIN_ID_METRICS INT = NULL
+
+AS   
+
+
+SELECT IC.[ID_ITEM_CHARACTERISTIC]
+      ,NEWID() AS ID_ASSISTANT
+      ,IC.[ID_ITEM]
+	  ,I.[KY_ITEM]
+	  ,I.[NM_ITEM]
+	  ,I.[DS_ITEM]
+      ,IC.[ID_METRICS]
+	  ,M.[KY_METRICS]
+	  ,M.[NM_METRICS]
+	  ,M.[KY_FIELD_TYPE]
+	  ,M.[FG_ENABLED]
+	  ,CASE WHEN M.[FG_ENABLED] =1 THEN 'Yes' ELSE 'No' END KY_ENABLED
+	  ,M.[FG_REQUIRED]
+	  ,CASE WHEN M.[FG_REQUIRED] =1 THEN 'Yes' ELSE 'No' END KY_REQUIRED
+	  ,M.[DS_TOOLTIP]
+      ,IC.[XML_FIELD_SETTINGS]
+  FROM [PRD].[C_ITEM_CHARACTERISTIC] IC
+  LEFT OUTER JOIN PRD.C_ITEM I ON I.ID_ITEM = IC.ID_ITEM
+  LEFT OUTER JOIN PRD.C_METRICS M ON M.ID_METRICS = IC.ID_METRICS
+	WHERE 
+		(@PIN_ID_ITEM IS NULL OR (@PIN_ID_ITEM IS NOT NULL AND IC.[ID_ITEM] = @PIN_ID_ITEM)) AND 
+		(@PIN_ID_METRICS IS NULL OR (@PIN_ID_METRICS IS NOT NULL AND IC.ID_METRICS = @PIN_ID_METRICS))
+

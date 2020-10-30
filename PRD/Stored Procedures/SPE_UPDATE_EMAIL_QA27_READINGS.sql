@@ -1,0 +1,54 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Author: Daniel Davalos Romero
+-- CRETAE date: 31/08/2020
+-- Description: update lack of readings in a "QA27"
+-- =============================================
+
+CREATE PROCEDURE [PRD].[SPE_UPDATE_EMAIL_QA27_READINGS]
+  @XML_RESULT XML = '' OUT,									-- 0 means error
+	@PIN_ID_WORK_ORDER AS INT = NULL,
+	@PIN_FG_EMAIL_SENDED AS BIT = NULL
+
+AS
+	BEGIN
+		DECLARE @V_EXIST_TRAN BIT = 0
+		BEGIN TRY
+			IF (@@TRANCOUNT = 0)
+			BEGIN
+				BEGIN TRANSACTION 
+				SET @V_EXIST_TRAN = 1
+			END
+
+		DECLARE @V_ID_QA27 INT = (
+			SELECT TOP 1 qa.ID_QA27
+			FROM PRD.K_QA27 qa
+			WHERE qa.ID_WORK_ORDER = @PIN_ID_WORK_ORDER
+			ORDER BY qa.DT_QA27 DESC
+		)
+
+		UPDATE PRD.K_QA27 
+		SET FG_EMAIL_SENDED = @PIN_FG_EMAIL_SENDED 
+		WHERE ID_QA27 = @V_ID_QA27
+
+			SET @XML_RESULT = DBO.F_ERROR_CREATE_HEADER( @@ROWCOUNT, 1, 'SUCCESSFUL')
+			SET @XML_RESULT = DBO.F_ERROR_INSERT_MESSAGES(@XML_RESULT, 'Proceso exitoso', 'ES')
+			SET @XML_RESULT = DBO.F_ERROR_INSERT_MESSAGES(@XML_RESULT, 'Successful Process', 'EN')
+			IF(@@TRANCOUNT > 0 AND @V_EXIST_TRAN = 1)
+			BEGIN
+				COMMIT
+			END
+		END TRY
+		BEGIN CATCH
+			IF(@@TRANCOUNT > 0 AND @V_EXIST_TRAN = 1)
+				BEGIN
+					ROLLBACK
+				END
+			DECLARE @KY_ERROR INT	= ERROR_NUMBER()
+			DECLARE @ERROR_MESSAGE VARCHAR(250) = ERROR_MESSAGE()
+			
+			SET @XML_RESULT = DBO.F_ERROR_CREATE_HEADER( @@ROWCOUNT, @KY_ERROR, 'ERROR')
+			SET @XML_RESULT = DBO.F_ERROR_MESSAGES( @KY_ERROR,'Ocurrió un error al procesar el registro')
+			SET @XML_RESULT = DBO.F_ERROR_MESSAGES( @KY_ERROR, 'There was an error processing the register')
+		END CATCH
+	END

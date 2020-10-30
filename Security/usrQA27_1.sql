@@ -1,0 +1,3 @@
+﻿CREATE LOGIN [usrQA27]
+    WITH PASSWORD = N'gH:njkoqkmft=8FuotmuEk0amsFT7_&#$!~<TdfmAwrfn+{>', SID = 0xA87CB71BBD1F88458E8BD91B7BD2BB93, DEFAULT_LANGUAGE = [us_english], CHECK_POLICY = OFF;
+

@@ -1,0 +1,49 @@
+﻿
+-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Julio Tavares
+-- CREATE date: 07/06/2018
+-- Description: Funtion obtain forms by a work order
+-- =============================================
+-- 09/28/2018 JDR The relationship with the K_PALLET table is changed to LEFT JOIN to show all the forms even when they are not associated with any skid
+-- =============================================
+CREATE FUNCTION [PRD].[F_GET_FORMS_BY_WORK_ORDER]
+(@PIN_ID_WORK_ORDER INT) 
+RETURNS TABLE 
+AS
+	RETURN 
+	(
+		SELECT CF.KY_FORM
+		, CF.NM_FORM
+		, CF.NO_FREQUENCE
+		, DA.NM_DATA_ACQUISITION_ORIGIN	
+		, ISNULL(KF.KY_STATUS_FORM,'NOT_SAVED') KY_STATUS_K_FORM
+		, VCP.NM_PROCESS
+		, KF.DT_FORM
+		, KF.DT_CLOSED
+		, KF.ID_BRANCH_PLANT
+		, WO.NO_WORK_ORDER
+		, KF.ID_K_FORM	
+		, CF.ID_FORM
+		, KF.KY_PROCESS_TYPE
+		, KF.DT_CREATION
+		, KF.ID_PALLET
+		, KP.NO_PALLET
+		, KF.NM_USER_AUTHORIZED_CANCEL
+		, KF.DS_EXPLANATION_CANCEL
+	FROM PRD.K_WORK_ORDER WO
+		INNER JOIN PRD.K_FORM KF 
+			  ON KF.ID_WORK_ORDER = WO.ID_WORK_ORDER
+			--ON (KF.ID_WORK_ORDER = WO.ID_WORK_ORDER AND KF.KY_PROCESS_TYPE = 'MANUFACTURE')
+			--OR (KF.ID_PRODUCTION_LINE = WO.ID_PRODUCTION_LINE AND KF.KY_PROCESS_TYPE = 'PROCESS') 
+		INNER JOIN PRD.C_FORM CF 
+			ON CF.ID_FORM = KF.ID_FORM	 
+		INNER JOIN ADM.VW_C_PROCESS VCP 
+			ON VCP.KY_PROCESS = CF.KY_PROCESS
+		INNER JOIN ADM.VW_C_DATA_ACQUISITION_ORIGIN DA 
+			ON DA.ID_DATA_ACQUISITION_ORIGIN = CF.ID_DATA_ACQUISITION_ORIGIN					 
+		LEFT JOIN PRD.K_PALLET KP 
+			ON KF.ID_PALLET = KP.ID_PALLET
+	WHERE WO.ID_WORK_ORDER = @PIN_ID_WORK_ORDER
+	)

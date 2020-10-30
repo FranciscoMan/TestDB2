@@ -1,0 +1,15 @@
+﻿CREATE TABLE [PRD].[K_FILM_TRACK] (
+    [ID_FILM_TRACK]        INT           IDENTITY (1, 1) NOT NULL,
+    [ID_ITEM]              INT           NOT NULL,
+    [ID_QA27]              INT           NOT NULL,
+    [TOP_SIDE]             NVARCHAR (80) NULL,
+    [BOTTOM_SIDE]          NVARCHAR (80) NULL,
+    [DT_CREATION]          DATETIME      NOT NULL,
+    [DT_UPDATE]            DATETIME      NULL,
+    [KY_USER_APP_CREATION] NVARCHAR (50) NOT NULL,
+    [KY_USER_APP_UPDATE]   NVARCHAR (50) NULL,
+    [NM_PROGRAM_CREATE]    NVARCHAR (50) NOT NULL,
+    [NM_PROGRAM_UPDATE]    NVARCHAR (50) NULL,
+    PRIMARY KEY CLUSTERED ([ID_FILM_TRACK] ASC)
+);
+

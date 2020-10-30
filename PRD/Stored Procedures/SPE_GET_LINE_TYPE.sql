@@ -1,0 +1,24 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Martin Sánchez
+-- CREATE date: 07/03/2017
+-- Description: get view line type.
+-- =============================================
+
+CREATE PROCEDURE  [PRD].[SPE_GET_LINE_TYPE] 
+		@PIN_ID_LINE_TYPE AS int = NULL,
+		@PIN_KY_LINE_TYPE AS nvarchar(300) = NULL,
+        @PIN_NM_LINE_TYPE AS nvarchar(50) = NULL
+AS
+	SELECT 
+	ID_PRODUCTION_LINE_TYPE, 
+	KY_PRODUCTION_LINE_TYPE,
+	NM_PRODUCTION_LINE_TYPE
+	FROM ADM.VW_S_PRODUCTION_LINE_TYPE V
+	   WHERE (@PIN_ID_LINE_TYPE IS NULL OR (@PIN_ID_LINE_TYPE IS NOT NULL AND V.ID_PRODUCTION_LINE_TYPE = @PIN_ID_LINE_TYPE )) AND 
+				 (@PIN_KY_LINE_TYPE IS NULL OR (@PIN_KY_LINE_TYPE IS NOT NULL AND V.KY_PRODUCTION_LINE_TYPE = @PIN_KY_LINE_TYPE )) AND 
+				 (@PIN_NM_LINE_TYPE IS NULL OR (@PIN_NM_LINE_TYPE IS NOT NULL AND V.NM_PRODUCTION_LINE_TYPE = @PIN_NM_LINE_TYPE))
+
+
+

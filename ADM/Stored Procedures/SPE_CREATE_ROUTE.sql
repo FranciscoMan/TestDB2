@@ -1,0 +1,50 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Juan De Dios Pérez
+-- CREATE date: 30/03/2017
+-- Description: Crea a route in a file table
+-- =============================================
+-- =============================================
+CREATE PROCEDURE    [ADM].[SPE_CREATE_ROUTE]
+	  @PIN_FS_MULTIMEDIA_FOLDER VARCHAR(255)
+	, @PIN_ID_FILESTREAM UNIQUEIDENTIFIER OUT
+
+AS
+BEGIN       
+	DECLARE @V_FS_FOLDER_I NVARCHAR(255) = ''
+		, @V_FS_FOLDER_D NVARCHAR(255) = ''
+		, @V_FS_FOLDER NVARCHAR(255) = ''
+		, @V_FG_FINISHED INT = 1
+		, @V_FG_TRY_INSERT BIT = 0
+
+	DECLARE @V_FS_INSERT_FILE TABLE (
+		STREAM_ID UNIQUEIDENTIFIER
+	)
+
+	SET @V_FS_FOLDER_D = @PIN_FS_MULTIMEDIA_FOLDER
+
+	WHILE (@V_FG_FINISHED > 0) BEGIN
+		SELECT @V_FG_FINISHED = CHARINDEX('\', @V_FS_FOLDER_D, 2)
+			, @V_FS_FOLDER = REPLACE(CASE WHEN @V_FG_FINISHED > 0 THEN LEFT(@V_FS_FOLDER_D, @V_FG_FINISHED - 1) ELSE @V_FS_FOLDER_D END, '\', '')
+			, @V_FS_FOLDER_I = @V_FS_FOLDER_I + CASE WHEN @V_FG_FINISHED > 0 THEN LEFT(@V_FS_FOLDER_D, @V_FG_FINISHED - 1) ELSE @V_FS_FOLDER_D END
+			, @V_FS_FOLDER_D = CASE WHEN @V_FG_FINISHED > 0 THEN RIGHT(@V_FS_FOLDER_D, LEN(@V_FS_FOLDER_D) - @V_FG_FINISHED + 1) ELSE '' END
+
+--		SELECT @V_FS_FOLDER, @V_FS_FOLDER_I, @V_FS_FOLDER_D 
+		IF (@V_FG_TRY_INSERT = 1) BEGIN
+			IF NOT EXISTS (SELECT TOP 1 1 FROM ADM.FS_FILE_SYSTEM WHERE file_stream.GetFileNamespacePath() = @V_FS_FOLDER_I) BEGIN
+				INSERT INTO ADM.FS_FILE_SYSTEM (name, path_locator, is_directory)
+				OUTPUT INSERTED.stream_id INTO @V_FS_INSERT_FILE
+				SELECT @V_FS_FOLDER, dbo.GetNewPathLocator(GetPathLocator(FileTableRootPath() + REPLACE(@V_FS_FOLDER_I, '\' + @V_FS_FOLDER, ''))), 1
+
+				SELECT TOP 1 @PIN_ID_FILESTREAM = STREAM_ID FROM @V_FS_INSERT_FILE
+				DELETE FROM @V_FS_INSERT_FILE
+			END ELSE IF (@V_FG_FINISHED <= 0) BEGIN
+				SELECT TOP 1 @PIN_ID_FILESTREAM = STREAM_ID FROM ADM.FS_FILE_SYSTEM WHERE file_stream.GetFileNamespacePath() = @V_FS_FOLDER_I
+			END
+		END
+
+		SET @V_FG_TRY_INSERT = 1
+	END
+END
+

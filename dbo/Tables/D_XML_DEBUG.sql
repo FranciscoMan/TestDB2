@@ -1,0 +1,5 @@
+﻿CREATE TABLE [dbo].[D_XML_DEBUG] (
+    [XML_DEBUG] XML      NOT NULL,
+    [DT_CREATE] DATETIME NOT NULL
+);
+

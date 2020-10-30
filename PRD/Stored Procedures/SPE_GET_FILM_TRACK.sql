@@ -1,0 +1,29 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Vitek - 2020
+-- Author: Aideé Alvarez.
+-- CRETAE date: 10/22/2020
+-- Description: Get data film track
+-- =============================================
+
+CREATE PROCEDURE    [PRD].[SPE_GET_FILM_TRACK] 
+	@PIN_ID_ITEM AS INT = NULL,
+	@PIN_ID_FILM_TRACK AS INT = NULL,
+	@PIN_ID_QA27 AS INT = NULL
+AS   
+	SELECT 
+	ID_FILM_TRACK,
+	ID_ITEM, 
+	ID_QA27,
+	TOP_SIDE, 
+	BOTTOM_SIDE,
+	DT_CREATION,
+	DT_UPDATE,
+	KY_USER_APP_CREATION,
+	KY_USER_APP_UPDATE,
+	NM_PROGRAM_CREATE,
+	NM_PROGRAM_UPDATE
+	FROM PRD.K_FILM_TRACK
+	WHERE (@PIN_ID_ITEM IS NULL OR (@PIN_ID_ITEM IS NOT NULL AND ID_ITEM = @PIN_ID_ITEM))
+	AND (@PIN_ID_FILM_TRACK IS NULL OR (@PIN_ID_FILM_TRACK IS NOT NULL AND ID_FILM_TRACK = @PIN_ID_FILM_TRACK))
+	AND (@PIN_ID_QA27 IS NULL OR (@PIN_ID_QA27 IS NOT NULL AND ID_QA27 = @PIN_ID_QA27))

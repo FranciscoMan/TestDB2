@@ -1,0 +1,335 @@
+﻿-- =============================================
+-- Proyecto: Plaskolite
+-- Copyright (c) - Acrux - 2017
+-- Author: Juan De Dios Pérez
+-- CRETAE date: 08/03/2017
+-- Description: Insert or update a new  pallet comment
+-- =============================================
+CREATE PROCEDURE    [PRD].[SPE_INSERT_UPDATE_PALLET_COMMENTS] 
+    	    @XML_RESULT XML = '' OUT ,    -- --0 TO ERROR AND 1 TO CORRECT
+			@PIN_ID_PALLET_COMMENT AS int = NULL,
+			@PIN_ID_PALLET AS int = NULL,
+			@PIN_DS_COMMENT AS nvarchar(MAX) = NULL,
+			@PIN_DT_COMMENT AS DATETIME,
+			@PIN_XML_FILES AS XML = NULL,
+			@PIN_XML_PALLET AS XML = NULL,
+			@PIN_XML_POSITION_SCALING AS XML = NULL
+
+		  , @PIN_KY_USER_APP AS nvarchar(50)
+		  , @PIN_NM_PROGRAM AS nvarchar(50)
+		  , @PIN_TYPE_TRANSACTION CHAR(1)             --I=INSERT   U=UPDATE
+
+AS 
+BEGIN  
+	----WE DECLARE THE STARTED VARIABLE THAT INDICATES IF WE WILL HAVE A TRANSACTION ON SPE
+	DECLARE @V_EXIST_TRAN BIT = 0,
+	@V_DT_SYSTEM DATETIME = GETDATE(),    
+	@V_ID_FILE NVARCHAR(300) = NULL,
+	@V_NM_FILE NVARCHAR(250) = NULL,
+	@V_FS_FILE VARBINARY(MAX) = NULL,
+	@V_KY_STATUS_FILE NCHAR(1) = NULL,
+	@V_KY_ROOT NVARCHAR(200) = null,
+	@V_EXISTS_FILE NVARCHAR(250) = NULL,
+	@V_ERROR NVARCHAR(300) = NULL,
+	@PIN_ID_FILESTREAM UNIQUEIDENTIFIER,
+	@PIN_ID_PATH_LOCATOR hierarchyid,
+
+	@RowsToProcess  int,
+	@CurrentRow     int,
+	@SelectCol1     int,
+
+	-----------------------------------------VARIABLES FOR PALLET VEREDICT---------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------
+	
+	@PIN_ID_QA27 AS int = NULL,
+	@PIN_ID_WORK_ORDER AS int = NULL,
+	@PIN_NO_PALLET AS int = NULL,
+	@PIN_KY_STATUS AS nvarchar(50) = NULL,
+	@PIN_KY_USER_INSPECTOR AS nvarchar(50) = NULL,
+	@PIN_ID_QUALITY_INSPECTOR_AGREEMENT AS int = NULL,
+	@PIN_NM_QUALITY_INSPECTOR_AGREEMENT AS nvarchar(200) = NULL,
+	@PIN_FG_INSPECTOR_AGREEMENT AS bit = NULL,
+	@PIN_DT_INSPECTOR_AGREEMENT AS DATETIME = NULL,
+	@PIN_DS_EXPLANATION_AGREEMENT AS NVARCHAR(MAX) = NULL,
+	@PIN_ID_LEADMAN AS int = NULL,
+	@PIN_ID_FIRST_LEVEL_EMPLOYEE AS int = NULL
+	
+			
+
+
+
+	------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------
+    BEGIN TRY
+		--WE VERIFY THAT EXISTS A WORKING TRANSACTION
+		IF (@@TRANCOUNT = 0) 
+		BEGIN
+			--IN CASE THAT THE TRANSACTION DOESNT START
+			BEGIN TRANSACTION
+			--IT EDITS THE VARIABLE THAT INDICATES THAT THE TRANSACTION START IN THIS BLOCK TO CANCEL IN ANY MOMENT
+			SET @V_EXIST_TRAN = 1
+		END	
+
+		--WE VERIFY IF THE SPE IS GOING TO EXECUTE A UPDATE OR INSERT
+		IF @PIN_TYPE_TRANSACTION='I' 
+			BEGIN
+
+			--WE INSERT THE REGISTER ON THE TABLE  ADM.C_DEPARTMENT
+			CREATE TABLE #V_FS_INSERTED_FILE  
+			(STREAM_ID UNIQUEIDENTIFIER)
+
+			IF @PIN_XML_PALLET IS NULL BEGIN
+
+				INSERT INTO [PRD].[K_PALLET_COMMENT]
+						   ([ID_PALLET]
+						   ,[DS_COMMENT]
+						   ,[DT_COMMENT]
+						   ,[DT_CREATION]
+						   ,[KY_USER_APP_CREATION]
+						   ,[NM_PROGAM_CREATE]
+							)
+					 VALUES
+						   (@PIN_ID_PALLET
+						   ,@PIN_DS_COMMENT
+						   ,@V_DT_SYSTEM
+						   ,@V_DT_SYSTEM
+						   ,@PIN_KY_USER_APP
+						   ,@PIN_NM_PROGRAM
+						   )	
+
+				SET @PIN_ID_PALLET_COMMENT = SCOPE_IDENTITY();
+				SET @V_KY_ROOT = ('\Home\Configuration\Pallet Evidences\'+CONVERT(NVARCHAR(10),@PIN_ID_PALLET)+ '\' + CONVERT(nvarchar(10),@PIN_ID_PALLET_COMMENT));
+
+			 END
+			 ELSE 
+			 BEGIN
+			 	------------------------------------------------------------------------------------------------------				 
+				SET @V_KY_ROOT = ('\Home\Configuration\Pallet Evidences\'+CONVERT(NVARCHAR(10),@PIN_ID_PALLET));
+				------------------------------------------------------------------------------------------------------
+			 END		   
+
+	
+			EXECUTE ADM.SPE_CREATE_ROUTE @PIN_FS_MULTIMEDIA_FOLDER = @V_KY_ROOT, @PIN_ID_FILESTREAM = @PIN_ID_FILESTREAM OUTPUT
+
+			CREATE TABLE #tableFiles  (RowID int not null primary key identity(1,1),ID_FILE NVARCHAR(300), NM_FILE NVARCHAR(50),FS_FILE VARBINARY(MAX),KY_STATUS NCHAR(1) )
+
+			INSERT into #tableFiles (ID_FILE,NM_FILE,FS_FILE,KY_STATUS) 
+			SELECT      
+			d.value('@ID_FILE', 'NVARCHAR(300)') AS ID_FILE,
+			d.value('@NM_FILE', 'NVARCHAR(50)') AS NM_FILE,
+			d.value('@FS_FILE', 'varbinary(max)') AS FS_FILE,
+			d.value('@KY_STATUS', 'NCHAR(1)') AS KY_STATUS
+			FROM @PIN_XML_FILES.nodes('FILES/FILE') AS T(d)			   
+					   
+			SET @RowsToProcess=@@ROWCOUNT
+			SET @CurrentRow=0
+
+			WHILE @CurrentRow<@RowsToProcess BEGIN
+
+				SET @CurrentRow=@CurrentRow+1
+				SELECT 
+					@V_ID_FILE=ID_FILE,
+					@V_NM_FILE=NM_FILE,
+					@V_FS_FILE=FS_FILE,
+					@V_KY_STATUS_FILE = KY_STATUS
+					FROM #tableFiles
+					WHERE RowID=@CurrentRow
+
+					IF @V_KY_STATUS_FILE = 'I' 
+					BEGIN
+						IF @V_FS_FILE IS NOT NULL BEGIN
+
+							SET @PIN_ID_PATH_LOCATOR =  dbo.GetNewPathLocator(GetPathLocator(FileTableRootPath()+@V_KY_ROOT))
+				
+							IF @PIN_ID_PATH_LOCATOR IS NOT NULL BEGIN
+								INSERT INTO [ADM].[FS_FILE_SYSTEM](
+									file_stream
+									,name
+									,path_locator
+									--,parent_path_locator
+									--,is_archive
+								)
+								OUTPUT INSERTED.stream_id INTO #V_FS_INSERTED_FILE
+								SELECT 
+									@V_FS_FILE  
+								,@V_NM_FILE
+								,@PIN_ID_PATH_LOCATOR
+								--,@PIN_ID_FILESTREAM
+								--,1
+
+								SELECT @V_ID_FILE = STREAM_ID FROM #V_FS_INSERTED_FILE
+
+								IF @V_ID_FILE IS NOT NULL BEGIN
+
+									INSERT INTO [PRD].[K_PALLET_EVIDENCE]
+												([ID_PALLET]
+												,[ID_FILE]
+												,[DT_PALLET_EVIDENCE]
+												,[DT_CREATION]
+												,[KY_USER_APP_CREATION]
+												,[NM_PROGAM_CREATE]
+												)
+											VALUES
+												(@PIN_ID_PALLET
+												,@V_ID_FILE
+												,@V_DT_SYSTEM
+												,@V_DT_SYSTEM
+												,@PIN_KY_USER_APP
+												,@PIN_NM_PROGRAM
+												)	 
+								END
+							END
+						END
+					END
+					ELSE IF @V_KY_STATUS_FILE = 'D' 
+					BEGIN
+
+						DELETE FROM PRD.K_PALLET_EVIDENCE
+						WHERE ID_FILE = @V_ID_FILE;
+					
+						DELETE FROM ADM.FS_FILE_SYSTEM
+						WHERE stream_id = @V_ID_FILE;					
+					END
+			END -- END WHILE
+
+			
+			IF @PIN_XML_PALLET IS NOT NULL 
+			BEGIN
+
+				SELECT TOP 1  
+				@PIN_NO_PALLET = p.value('@NO_PALLET', 'INT'),
+				@PIN_ID_QA27 = p.value('@ID_QA27', 'INT'),
+				@PIN_ID_WORK_ORDER = p.value('@ID_WORK_ORDER', 'INT'),
+				@PIN_ID_QUALITY_INSPECTOR_AGREEMENT = p.value('@ID_QUALITY_INSPECTOR_AGREEMENT', 'INT'),
+				@PIN_NM_QUALITY_INSPECTOR_AGREEMENT = p.value('@NM_QUALITY_INSPECTOR_AGREEMENT', 'NVARCHAR(50)'),
+				@PIN_DT_INSPECTOR_AGREEMENT = @V_DT_SYSTEM,  -- p.value('@DT_INSPECTOR_AGREEMENT', 'DATETIME'), -- CHANGE DATE NOW THE VISUAL STUDIO FOR SQL SERVER
+				@PIN_FG_INSPECTOR_AGREEMENT = p.value('@FG_INSPECTOR_AGREEMENT', 'BIT'),
+				@PIN_KY_USER_INSPECTOR = p.value('@KY_USER_INSPECTOR', 'NVARCHAR(50)'),
+				@PIN_DS_EXPLANATION_AGREEMENT = p.value('@DS_EXPLANATION_AGREEMENT', 'NVARCHAR(MAX)'),
+				--@PIN_ID_FIRST_LEVEL_EMPLOYEE = p.value('@ID_FIRST_LEVEL_EMPLOYEE', 'INT'),
+				@PIN_ID_LEADMAN = p.value('@ID_LEADMAN', 'INT'),
+				@PIN_KY_STATUS = p.value('@KY_STATUS', 'NVARCHAR(20)') 
+			FROM @PIN_XML_PALLET.nodes('PALLETS/PALLET') AS T(p)	
+			
+	
+			IF @PIN_FG_INSPECTOR_AGREEMENT = 1
+				BEGIN
+					   UPDATE  [PRD].[K_PALLET]
+						 SET    DT_FINAL_TIME = @V_DT_SYSTEM ,
+								KY_STATUS = @PIN_KY_STATUS ,
+								KY_USER_INSPECTOR = @PIN_KY_USER_INSPECTOR ,
+								ID_QUALITY_INSPECTOR_AGREEMENT = @PIN_ID_QUALITY_INSPECTOR_AGREEMENT ,
+								NM_QUALITY_INSPECTOR_AGREEMENT = @PIN_NM_QUALITY_INSPECTOR_AGREEMENT ,
+								FG_INSPECTOR_AGREEMENT = ISNULL(@PIN_FG_INSPECTOR_AGREEMENT,0) ,
+								DT_INSPECTOR_AGREEMENT = @V_DT_SYSTEM ,
+								DS_EXPLANATION_AGREEMENT = @PIN_DS_EXPLANATION_AGREEMENT 
+
+							,   [DT_UPDATE] =@V_DT_SYSTEM
+							,   [KY_USER_APP_UPDATE] = @PIN_KY_USER_APP
+							,   [NM_PROGRAM_UPDATE] = @PIN_NM_PROGRAM
+								WHERE [ID_PALLET] = @PIN_ID_PALLET
+
+					UPDATE KIS
+					    SET KIS.KY_STATUS = @PIN_KY_STATUS
+					       ,KIS.DT_UPDATE =@V_DT_SYSTEM
+						   ,KIS.KY_USER_APP_UPDATE = @PIN_KY_USER_APP
+						   ,KIS.NM_PROGRAM_UPDATE = @PIN_NM_PROGRAM
+					  FROM PRD.K_INSPECTION_SKID KIS
+					  JOIN PRD.K_PALLET KP ON KIS.NO_PALLET = KP.NO_PALLET AND KIS.ID_WORK_ORDER = KP.ID_WORK_ORDER
+					 WHERE KP.ID_PALLET = @PIN_ID_PALLET 
+				END	
+
+			ELSE
+				BEGIN
+
+					EXEC [PRD].[SPE_INSERT_UPDATE_PALLET] 
+					'',
+					@PIN_ID_PALLET,
+					@PIN_ID_QA27,
+					@PIN_ID_WORK_ORDER,
+					@PIN_NO_PALLET ,
+					NULL,--@PIN_NO_SECOND_PALLET,
+					NULL,--@PIN_NO_QUANTITY,
+					NULL,--@PIN_DT_INITIAL_TIME
+					NULL,--@PIN_DT_FINAL_TIME
+					@PIN_KY_STATUS,
+					@PIN_KY_USER_INSPECTOR,
+					@PIN_ID_QUALITY_INSPECTOR_AGREEMENT,
+					@PIN_NM_QUALITY_INSPECTOR_AGREEMENT,
+					@PIN_FG_INSPECTOR_AGREEMENT,
+					@PIN_DT_INSPECTOR_AGREEMENT,
+					@PIN_DS_EXPLANATION_AGREEMENT,
+					NULL,--@PIN_KY_USER_LEADMAN AS nvarchar(50) = 
+					@PIN_ID_LEADMAN, 
+					NULL,--@PIN_NM_LEADMAN AS nvarchar(200) = 
+					NULL,--@PIN_FG_LEADMAN AS bit = 
+					NULL,--@PIN_DT_LEADMAN AS DATETIME = 
+					NULL,--@PIN_KY_FIRST_LEVEL_USER AS nvarchar(50) =
+					NULL,--@PIN_ID_FIRST_LEVEL_EMPLOYEE,
+					NULL,--@PIN_NM_FIRST_LEVEL_EMPLOYEE AS nvarchar(200) = 
+					NULL,--@PIN_FG_FIRST_LEVEL_EMPLOYEE AS bit = 
+					NULL,--@PIN_DT_FIRST_LEVEL_EMPLOYEE AS DATETIME = 
+					NULL,--@PIN_KY_SECOND_LEVEL_USER_REJECTION AS nvarchar(50) = 
+					NULL,-- @PIN_ID_SECOND_LEVEL_EMPLOYEE_REJECTION AS int = 
+					NULL,-- @PIN_NM_SECOND_LEVEL_EMPLOYEE_REJECTION AS nvarchar(200) = 
+					NULL,-- @PIN_FG_SECOND_LEVEL_EMPLOYEE_REJECTION AS bit = 
+					NULL,-- @PIN_DT_SECOND_LEVEL_EMPLOYEE_REJECTION AS DATETIME = 
+					NULL,--@PIN_KY_THIRD_LEVEL_USER_REJECTION AS nvarchar(50) = 
+					NULL, --@PIN_ID_THIRD_LEVEL_EMPLOYEE_REJECTION AS int = 
+					NULL,--@PIN_NM_THIRD_LEVEL_EMPLOYEE_REJECTION AS nvarchar(200) = 
+					NULL,--@PIN_FG_THIRD_LEVEL_EMPLOYEE_REJECTION AS bit = 
+					NULL,--@PIN_DT_THIRD_LEVEL_EMPLOYEE_REJECTION AS DATETIME = 
+			
+					NULL, --@PIN_ID_QUALITY_INSPECTOR_POSITION AS int =  THIS IS THE QUALITY INSPECTOR ID SET UP IN GENERAL CONFIGURATION USED TO SEND TELEGRAM NOTIFICATIONS
+					NULL,--@PIN_ID_BRANCH_PLANT AS int = 
+					@PIN_XML_POSITION_SCALING,
+					NULL --@PIN_NO_SKIDS_TO_OPEN,
+				  , @PIN_KY_USER_APP
+				  , @PIN_NM_PROGRAM
+				  , 'F'          --I=INSERT   U=UPDATE  V=VEREDICT
+				END
+		END
+		
+		
+------------------------------------------------------------------------------------------------------
+
+
+		END 
+		ELSE 
+			BEGIN
+				-- WE UPDATE THE REGISTER ON THE TABLE ADM.C_DEPARTMENT
+				UPDATE [PRD].[K_PALLET_COMMENT]
+				SET
+   					  [DS_COMMENT] = @PIN_DS_COMMENT
+					, [DT_COMMENT] = @V_DT_SYSTEM
+					, [DT_UPDATE] =@V_DT_SYSTEM
+					, [KY_USER_APP_UPDATE] = @PIN_KY_USER_APP
+					, [NM_PROGRAM_UPDATE] = @PIN_NM_PROGRAM
+				WHERE [ID_PALLET_COMMENT] = @PIN_ID_PALLET_COMMENT
+									
+			END
+
+		-- WE BACK A RETURN VARIABLE THAT INDICATES ALL WAS PERFORMED OKAY 
+		SET @XML_RESULT = DBO.F_ERROR_CREATE_HEADER( @@ROWCOUNT, 1, 'SUCCESSFUL')
+		SET @XML_RESULT = DBO.F_ERROR_INSERT_MESSAGES(@XML_RESULT, 'Proceso exitoso', 'ES')
+		SET @XML_RESULT = DBO.F_ERROR_INSERT_MESSAGES(@XML_RESULT, 'Successful Process', 'EN')
+		-- IF THERE IS A TRANSACTION IN THIS BLOCK, IT WILL BE ERASED
+		IF (@@TRANCOUNT > 0 AND @V_EXIST_TRAN = 1)
+			COMMIT	
+	END TRY
+	BEGIN CATCH		
+		--IF IT OCCURS A ERROR IN THIS BLOCK THE TRANSACTIO GET CANCELED
+		IF (@@TRANCOUNT > 0 AND @V_EXIST_TRAN = 1)
+			ROLLBACK
+			
+		DECLARE @KY_ERROR INT  = 	ERROR_NUMBER()
+		DECLARE @ERROR_MESSAGE NVARCHAR(250)  = 	 ERROR_MESSAGE()
+	
+	    SET @XML_RESULT = DBO.F_ERROR_CREATE_HEADER( @@ROWCOUNT, @KY_ERROR, 'ERROR')
+		SET @XML_RESULT = DBO.F_ERROR_MESSAGES( @KY_ERROR,'Ocurrió un error al procesar el registro')
+		SET @XML_RESULT = DBO.F_ERROR_MESSAGES( @KY_ERROR,@ERROR_MESSAGE)-- 'There was an error processing the register')
+		
+			
+	END CATCH
+END
+

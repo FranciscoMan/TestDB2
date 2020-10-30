@@ -1,0 +1,25 @@
+﻿CREATE TABLE [PRD].[C_FORM] (
+    [ID_FORM]                         INT             IDENTITY (1, 1) NOT NULL,
+    [KY_FORM]                         NVARCHAR (50)   NOT NULL,
+    [NM_FORM]                         NVARCHAR (100)  NOT NULL,
+    [DS_FORM]                         NVARCHAR (1000) NULL,
+    [NO_FREQUENCE]                    INT             NOT NULL,
+    [ID_DATA_ACQUISITION_ORIGIN]      INT             NOT NULL,
+    [ID_BRANCH_PLANT]                 INT             NULL,
+    [FG_ACTIVE]                       BIT             CONSTRAINT [DF_C_FORM_FG_ACTIVE] DEFAULT ((1)) NOT NULL,
+    [NO_SAMPLE]                       INT             NULL,
+    [KY_SAMPLE_UNIT]                  NCHAR (10)      NULL,
+    [DT_CREATION]                     DATETIME        NOT NULL,
+    [KY_PROCESS]                      NVARCHAR (50)   NULL,
+    [FG_GET_PERIODICALLY]             BIT             CONSTRAINT [DF_C_FORM_FG_GET_PERIODICALLY] DEFAULT ((1)) NOT NULL,
+    [ID_PRODUCTION_LINE_TYPE]         INT             NULL,
+    [NO_RANDOM_ACQUISITION_VARIABLES] INT             CONSTRAINT [DF_C_FORM_NO_RANDOM_ACQUISITION_VARIABLES] DEFAULT ((0)) NOT NULL,
+    [DT_UPDATE]                       DATETIME        NULL,
+    [KY_USER_APP_CREATION]            NVARCHAR (50)   NOT NULL,
+    [KY_USER_APP_UPDATE]              NVARCHAR (50)   NULL,
+    [NM_PROGAM_CREATE]                NVARCHAR (50)   NOT NULL,
+    [NM_PROGRAM_UPDATE]               NVARCHAR (50)   NULL,
+    CONSTRAINT [PK_C_FORM] PRIMARY KEY CLUSTERED ([ID_FORM] ASC),
+    CONSTRAINT [FK_C_FORM_C_BRANCH_PLANT] FOREIGN KEY ([ID_BRANCH_PLANT]) REFERENCES [ADM].[C_BRANCH_PLANT] ([ID_BRANCH_PLANT])
+);
+

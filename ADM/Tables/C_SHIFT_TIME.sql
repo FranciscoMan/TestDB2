@@ -1,0 +1,14 @@
+﻿CREATE TABLE [ADM].[C_SHIFT_TIME] (
+    [ID_SHIFT_TIME]      INT          IDENTITY (1, 1) NOT NULL,
+    [ID_SHIFT]           INT          NOT NULL,
+    [KY_SHIFT]           VARCHAR (50) NULL,
+    [KY_SHIFT_TIME]      VARCHAR (50) NULL,
+    [NM_SHIFT_TIME]      VARCHAR (50) NULL,
+    [NM_SHIFT]           VARCHAR (80) NULL,
+    [NO_SHIFT_TIME]      INT          NULL,
+    [INITIAL_SHIFT_TIME] TIME (7)     NULL,
+    [FINAL_SHIFT_TIME]   TIME (7)     NULL,
+    [ID_BRANCH_PLANT]    INT          NULL,
+    PRIMARY KEY CLUSTERED ([ID_SHIFT_TIME] ASC)
+);
+

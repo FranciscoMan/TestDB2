@@ -1,0 +1,87 @@
+30/10/2020 05:29:14 p. m.	Este registro contiene información acerca de la operación de importación de esquema en el proyecto 'Test66' del equipo 'DESKTOP-C2I1QS7' por el usuario 'Vitek'.
+30/10/2020 05:29:14 p. m.	Se inició la importación del esquema de la base de datos.
+30/10/2020 05:29:20 p. m.	Recopilando credenciales de la base de datos
+30/10/2020 05:29:20 p. m.	Recopilando opciones de base de datos
+30/10/2020 05:29:20 p. m.	Recopilando la opción de configuración de ámbito de la base de datos genérica
+30/10/2020 05:29:20 p. m.	Recopilando usuarios
+30/10/2020 05:29:20 p. m.	Recopilando roles
+30/10/2020 05:29:21 p. m.	Recopilando roles de aplicación
+30/10/2020 05:29:21 p. m.	Recopilando pertenencias a roles
+30/10/2020 05:29:21 p. m.	Recopilando grupos de archivos
+30/10/2020 05:29:21 p. m.	Recopilando catálogos de texto completo
+30/10/2020 05:29:21 p. m.	Recopilando ensamblados
+30/10/2020 05:29:21 p. m.	Recopilando certificados
+30/10/2020 05:29:21 p. m.	Recopilando claves asimétricas
+30/10/2020 05:29:21 p. m.	Recopilando claves simétricas
+30/10/2020 05:29:21 p. m.	Recopilando claves simétricas cifradas
+30/10/2020 05:29:21 p. m.	Recopilando esquemas
+30/10/2020 05:29:21 p. m.	Recopilando colecciones de esquemas XML
+30/10/2020 05:29:21 p. m.	Recopilando tipos de datos definidos por el usuario
+30/10/2020 05:29:21 p. m.	Recopilando tipos definidos por el usuario
+30/10/2020 05:29:21 p. m.	Recopilando tipos de tabla
+30/10/2020 05:29:21 p. m.	Recopilando claves únicas para tipos de tabla
+30/10/2020 05:29:21 p. m.	Recopilando claves principales para tipos de tabla
+30/10/2020 05:29:21 p. m.	Recopilando índices para tipos de tablas
+30/10/2020 05:29:21 p. m.	Recopilando restricciones CHECK para tipos de tabla
+30/10/2020 05:29:21 p. m.	Recopilando restricciones DEFAULT para tipos de tabla
+30/10/2020 05:29:21 p. m.	Recopilando funciones de partición
+30/10/2020 05:29:21 p. m.	Recopilando esquemas de partición
+30/10/2020 05:29:21 p. m.	Recopilando funciones
+30/10/2020 05:29:21 p. m.	Recopilando funciones cifradas
+30/10/2020 05:29:21 p. m.	Recopilando agregados
+30/10/2020 05:29:21 p. m.	Recopilando procedimientos
+30/10/2020 05:29:22 p. m.	Recopilando procedimientos cifrados
+30/10/2020 05:29:22 p. m.	Recopilando tablas
+30/10/2020 05:29:22 p. m.	Recopilando claves principales
+30/10/2020 05:29:22 p. m.	Recopilando restricciones UNIQUE
+30/10/2020 05:29:22 p. m.	Recopilando claves externas
+30/10/2020 05:29:22 p. m.	Recopilando restricciones DEFAULT
+30/10/2020 05:29:22 p. m.	Recopilando restricciones CHECK
+30/10/2020 05:29:22 p. m.	Recopilando vistas
+30/10/2020 05:29:22 p. m.	Recopilando vistas cifradas
+30/10/2020 05:29:22 p. m.	Recopilando índices
+30/10/2020 05:29:22 p. m.	Recopilando estadísticas
+30/10/2020 05:29:22 p. m.	Recopilando listas de palabras irrelevantes de índices de texto completo
+30/10/2020 05:29:22 p. m.	Recopilando listas de propiedades de búsqueda
+30/10/2020 05:29:22 p. m.	Recopilando propiedades de búsqueda
+30/10/2020 05:29:22 p. m.	Recopilando índices de texto completo
+30/10/2020 05:29:22 p. m.	Recopilando índices de almacenamiento de columnas
+30/10/2020 05:29:22 p. m.	Recopilando índices espaciales
+30/10/2020 05:29:22 p. m.	Recopilando índices XML
+30/10/2020 05:29:22 p. m.	Recopilando índices XML selectivos
+30/10/2020 05:29:22 p. m.	Recopilando desencadenadores cifrados
+30/10/2020 05:29:22 p. m.	Recopilando desencadenadores
+30/10/2020 05:29:22 p. m.	Recopilando DDL triggers cifrados y de CLR
+30/10/2020 05:29:22 p. m.	Recopilando DDL triggers
+30/10/2020 05:29:22 p. m.	Creación de la restricción perimetral en curso
+30/10/2020 05:29:22 p. m.	Recopilando sinónimos
+30/10/2020 05:29:22 p. m.	Recopilando valores predeterminados
+30/10/2020 05:29:22 p. m.	Recopilando enlaces UDDT de restricción de datos
+30/10/2020 05:29:22 p. m.	Recopilando reglas
+30/10/2020 05:29:22 p. m.	Recopilando enlaces UDDT de restricción de datos
+30/10/2020 05:29:22 p. m.	Recopilando tipos de mensaje
+30/10/2020 05:29:22 p. m.	Recopilando colas
+30/10/2020 05:29:22 p. m.	Recopilando contratos
+30/10/2020 05:29:22 p. m.	Recopilando servicios
+30/10/2020 05:29:22 p. m.	Recopilando notificaciones de eventos
+30/10/2020 05:29:22 p. m.	Recopilando enlaces de servicio remoto
+30/10/2020 05:29:22 p. m.	Recopilando prioridades de Broker
+30/10/2020 05:29:22 p. m.	Recopilando firmas
+30/10/2020 05:29:22 p. m.	Recopilando opciones de compresión de datos
+30/10/2020 05:29:22 p. m.	Recopilando tipos de secuencia
+30/10/2020 05:29:22 p. m.	Recopilando directivas de seguridad
+30/10/2020 05:29:22 p. m.	Recopilar claves de cifrado de columna
+30/10/2020 05:29:22 p. m.	Recopilando claves maestras de columna
+30/10/2020 05:29:22 p. m.	Recopilando orígenes de datos externos
+30/10/2020 05:29:23 p. m.	Recopilando formatos de archivo externos
+30/10/2020 05:29:23 p. m.	Recopilando tablas externas
+30/10/2020 05:29:23 p. m.	Recopilando permisos de base de datos
+30/10/2020 05:29:23 p. m.	Recopilando propiedades extendidas
+30/10/2020 05:29:23 p. m.	Recopilando credenciales
+30/10/2020 05:29:23 p. m.	Recopilando inicios de sesión
+30/10/2020 05:29:23 p. m.	Recopilando auditorías de servidor
+30/10/2020 05:29:24 p. m.	Buscando elementos duplicados en el proyecto
+30/10/2020 05:29:25 p. m.	Ha finalizado el procesamiento de los elementos duplicados
+30/10/2020 05:29:30 p. m.	Finalizó la importación de la base de datos.
+30/10/2020 05:29:30 p. m.	Se guardó un resumen de la importación en la siguiente ubicación: C:\Users\Vitek\source\repos\Test66\Registros de importación de esquemas\Test66_20201030112914.log
+30/10/2020 05:29:30 p. m.	Haga clic en Finalizar para continuar...

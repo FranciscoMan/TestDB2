@@ -1,0 +1,9 @@
+﻿CREATE TABLE [PRD].[SAVEREPORT] (
+    [ID_REPORT]  INT           IDENTITY (1, 1) NOT NULL,
+    [DT_REPORT]  DATE          NULL,
+    [NM_SHIFT]   NVARCHAR (50) NULL,
+    [REPORT]     TEXT          NULL,
+    [SAVEREPORT] TEXT          NULL,
+    PRIMARY KEY CLUSTERED ([ID_REPORT] ASC)
+);
+

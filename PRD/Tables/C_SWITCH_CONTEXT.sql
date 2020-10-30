@@ -1,0 +1,13 @@
+﻿CREATE TABLE [PRD].[C_SWITCH_CONTEXT] (
+    [ID_SWITCH]            INT           IDENTITY (1, 1) NOT NULL,
+    [NM_SWITCH]            NVARCHAR (50) NOT NULL,
+    [FG_SWITCH]            BIT           NOT NULL,
+    [ID_BRANCH_PLANT]      INT           NULL,
+    [NM_BRANCH_PLANT]      NVARCHAR (80) NULL,
+    [DT_CREATION]          DATETIME      NOT NULL,
+    [DT_UPDATE]            DATETIME      NULL,
+    [KY_USER_APP_CREATION] NVARCHAR (50) NOT NULL,
+    [KY_USER_APP_UPDATE]   NVARCHAR (50) NULL,
+    PRIMARY KEY CLUSTERED ([ID_SWITCH] ASC)
+);
+
